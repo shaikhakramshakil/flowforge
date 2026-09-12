@@ -18,15 +18,12 @@ public class FlowForgeProperties {
     public static class Scheduler {
         /** Kill-switch: false stops the @Scheduled sweep (tests, passive instances). */
         private boolean enabled = true;
-        private Duration scanInterval = Duration.ofSeconds(1);
         private int batchSize = 100;
         private Duration leaseDuration = Duration.ofSeconds(30);
 
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
 
-        public Duration getScanInterval() { return scanInterval; }
-        public void setScanInterval(Duration scanInterval) { this.scanInterval = scanInterval; }
         public int getBatchSize() { return batchSize; }
         public void setBatchSize(int batchSize) { this.batchSize = batchSize; }
         public Duration getLeaseDuration() { return leaseDuration; }

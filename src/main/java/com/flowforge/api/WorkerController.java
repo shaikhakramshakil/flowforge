@@ -128,11 +128,15 @@ public class WorkerController {
     /** POST /workers/{id}/tasks/{taskExecutionId}/fail — report failure. */
     @PostMapping("/{id}/tasks/{taskExecutionId}/fail")
     public ResponseEntity<?> fail(@PathVariable String id, @PathVariable Long taskExecutionId,
-                                  @RequestBody JsonNode body) {
-        String lease = body.path("leaseOwner").asText("");
-        int attempt = body.path("attempt").asInt(0);
-        String error = body.path("error").asText("task failed (no error message)");
-        claimer.fail(taskExecutionId, id, lease, attempt, error);
-        return ResponseEntity.ok(mapper.createObjectNode().put("recorded", true));
+                                  @RequestBody(required = false) JsonNode body) {
+        String lease = body == null ? "" : body.path("leaseOwner").asText("");
+        int attempt = body == null ? 0 : body.path("attempt").asInt(0);
+        String error = body == null ? "task failed (no error message)"
+                : body.path("error").asText("task failed (no error message)");
+        boolean ok = claimer.fail(taskExecutionId, id, lease, attempt, error);
+        return ok
+                ? ResponseEntity.ok(mapper.createObjectNode().put("recorded", true))
+                : ResponseEntity.status(409).body(mapper.createObjectNode()
+                        .put("error", "task is no longer RUNNING under this lease (stale fail)"));
     }
 }

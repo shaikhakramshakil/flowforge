@@ -6,16 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface WorkflowExecutionRepository extends JpaRepository<WorkflowExecution, Long> {
 
     List<WorkflowExecution> findByStatusOrderByStartedAtDesc(ExecutionStatus status);
 
-    List<WorkflowExecution> findAllByOrderByStartedAtDesc();
-
-    @Query("select e from WorkflowExecution e where e.id = :id")
-    Optional<WorkflowExecution> findByIdWithLock(@Param("id") Long id);
+    long countByStatus(ExecutionStatus status);
 
     @Modifying
     @Query("update WorkflowExecution e set e.status = :status, e.completedAt = CURRENT_TIMESTAMP " +

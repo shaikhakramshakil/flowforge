@@ -125,12 +125,12 @@ public class TaskClaimer {
      * backoff deadline; exhausted failures go to DEAD_LETTER (F5).
      */
     @Transactional
-    public void fail(Long taskId, String workerId, String leaseOwner,
-                     int attempt, String error) {
+    public boolean fail(Long taskId, String workerId, String leaseOwner,
+                        int attempt, String error) {
         Optional<TaskExecution> maybe = taskExecutions.findById(taskId);
-        if (maybe.isEmpty()) return;
+        if (maybe.isEmpty()) return false;
         TaskExecution t = maybe.get();
-        if (t.getLeaseOwner() == null || !t.getLeaseOwner().equals(leaseOwner)) return;
+        if (t.getLeaseOwner() == null || !t.getLeaseOwner().equals(leaseOwner)) return false;
 
         TaskDefinition def = definitionFor(t);
         int maxAttempts = Optional.ofNullable(def == null ? null : def.getMaxAttempts())
@@ -152,7 +152,9 @@ public class TaskClaimer {
         if (n == 1) {
             events.save(new TaskEvent(t.getExecutionId(), t.getTaskId(),
                     next.name(), attempt, workerId, detail));
+            return true;
         }
+        return false;
     }
 
     /** The failing task's definition from its execution's immutable snapshot. */

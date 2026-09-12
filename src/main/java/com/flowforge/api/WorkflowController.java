@@ -39,7 +39,7 @@ public class WorkflowController {
         }
     }
 
-    /** GET /workflows — list workflow names with latest version. */
+    /** GET /workflows — list every workflow version, newest first. */
     @GetMapping
     public ResponseEntity<?> list() {
         return ResponseEntity.ok(workflows.snapshot());

@@ -123,7 +123,8 @@ docker run -p 7860:7860 \
 **Hugging Face Spaces** (Docker SDK): create a Docker Space, push this repo,
 set `FF_DB_URL` / `FF_DB_USER` / `FF_DB_PASSWORD` as Space secrets (Spaces
 have no built-in Postgres — any managed instance works). The image already
-listens on 7860 and runs the embedded worker.
+listens on 7860 and runs the embedded worker. `GET /stats` doubles as a
+readiness probe (200 once the server is up and Flyway has migrated).
 
 ## License
 

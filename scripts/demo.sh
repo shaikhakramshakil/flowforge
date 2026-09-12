@@ -14,12 +14,14 @@ cd "$(dirname "$0")/.."
 
 BASE="${FF_BASE:-http://localhost:8080}"
 up() {
-  if ! docker ps --format "{{.Names}}" | grep -q "^flowforge-postgres$"; then
+  # -a: a stopped container from a previous `down` still owns the name;
+  # restart it instead of failing on the name collision in `docker run`.
+  if docker ps -a --format "{{.Names}}" | grep -q "^flowforge-postgres$"; then
+    docker start flowforge-postgres >/dev/null
+  else
     docker run -d --name flowforge-postgres \
       -e POSTGRES_DB=flowforge -e POSTGRES_USER=flowforge -e POSTGRES_PASSWORD=flowforge \
       -p 5432:5432 docker.io/library/postgres:16-alpine
-  else
-    docker start flowforge-postgres >/dev/null
   fi
   echo "waiting for postgres..."
   until docker exec flowforge-postgres pg_isready -U flowforge -d flowforge >/dev/null 2>&1; do

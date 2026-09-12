@@ -34,12 +34,9 @@ public class StatsController {
     @GetMapping
     public Object stats() {
         var node = mapper.createObjectNode();
-        node.put("activeExecutions",
-                executions.findByStatusOrderByStartedAtDesc(ExecutionStatus.RUNNING).size());
-        node.put("failedExecutions",
-                executions.findByStatusOrderByStartedAtDesc(ExecutionStatus.FAILED).size());
-        node.put("completedExecutions",
-                executions.findByStatusOrderByStartedAtDesc(ExecutionStatus.COMPLETED).size());
+        node.put("activeExecutions", executions.countByStatus(ExecutionStatus.RUNNING));
+        node.put("failedExecutions", executions.countByStatus(ExecutionStatus.FAILED));
+        node.put("completedExecutions", executions.countByStatus(ExecutionStatus.COMPLETED));
         node.put("runningTasks", taskExecutions.countByStatus(TaskStatus.RUNNING));
         node.put("retryWaitTasks", taskExecutions.countByStatus(TaskStatus.RETRY_WAIT));
         node.put("deadLetterTasks", taskExecutions.countByStatus(TaskStatus.DEAD_LETTER));

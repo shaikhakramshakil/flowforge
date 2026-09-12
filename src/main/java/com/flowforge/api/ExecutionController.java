@@ -26,7 +26,7 @@ public class ExecutionController {
         this.mapper = mapper;
     }
 
-    /** POST /workflows/{id}/execute — start an execution (latest version). */
+    /** POST /workflows/{id}/execute — start an execution of this workflow version. */
     @PostMapping("/workflows/{id}/execute")
     public ResponseEntity<?> execute(@PathVariable Long id) {
         try {

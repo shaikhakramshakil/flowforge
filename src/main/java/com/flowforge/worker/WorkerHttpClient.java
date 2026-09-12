@@ -85,12 +85,20 @@ public class WorkerHttpClient {
 
     public void fail(String workerId, long taskExecutionId, String leaseOwner,
                      int attempt, String error) {
-        rest.postForEntity(baseUrl + "/workers/" + workerId + "/tasks/" + taskExecutionId + "/fail",
-                mapper.createObjectNode()
-                    .put("leaseOwner", leaseOwner)
-                    .put("attempt", attempt)
-                    .put("error", error),
-                String.class);
+        try {
+            rest.postForEntity(baseUrl + "/workers/" + workerId + "/tasks/" + taskExecutionId + "/fail",
+                    mapper.createObjectNode()
+                        .put("leaseOwner", leaseOwner)
+                        .put("attempt", attempt)
+                        .put("error", error),
+                    String.class);
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() != HttpStatus.CONFLICT) {
+                throw e;
+            }
+            // Stale lease: the task was already recovered and re-claimed
+            // elsewhere; our failure report is obsolete, not an error.
+        }
     }
 
     public record ClaimedTask(long taskExecutionId, long executionId, String taskId,

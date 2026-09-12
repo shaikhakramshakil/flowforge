@@ -30,8 +30,10 @@ public class WorkflowService {
         // version; UNIQUE(name, version) rejects the loser, which recomputes
         // and retries. Each attempt flushes in its own transaction (no outer
         // @Transactional), so the failed attempt leaves nothing behind.
+        // Worst case the loser needs one attempt per concurrent creator;
+        // 10 covers any realistic deploy stampede (the test hammers 4-way).
         DataIntegrityViolationException last = null;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 10; i++) {
             try {
                 return insert(def);
             } catch (DataIntegrityViolationException e) {

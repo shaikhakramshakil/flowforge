@@ -21,8 +21,6 @@ flowforge:
     enabled: true
     # Fixed delay for the @Scheduled sweep (plain millis).
     scan-interval-ms: 1000
-    # Duration form, used for lease/unhealthy-cutoff math.
-    scan-interval: 1s
     # Max tasks fetched per scan pass.
     batch-size: 100
     # Lease granted to a worker when it claims a task for execution.

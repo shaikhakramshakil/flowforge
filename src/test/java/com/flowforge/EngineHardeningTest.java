@@ -21,6 +21,7 @@ import com.flowforge.engine.definition.WorkflowDefinition;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -80,14 +82,14 @@ class EngineHardeningTest extends BaseIntegrationTest {
 
         // The dead attempt's fail carries a stale (leaseOwner, attempt) pair:
         // the CAS rejects it, no event is recorded, the task stays RUNNING.
-        claimer.fail(first.getId(), "worker-A", first.getLeaseOwner(), 1, "stale failure");
+        assertFalse(claimer.fail(first.getId(), "worker-A", first.getLeaseOwner(), 1, "stale failure"));
         TaskExecution still = taskExecutions.findById(first.getId()).orElseThrow();
         assertEquals(TaskStatus.RUNNING, still.getStatus());
         assertEquals(2, still.getAttempt());
         assertEquals(eventsBefore, events.count());
 
         // A later legitimate fail from the current attempt still succeeds.
-        claimer.fail(second.getId(), "worker-B", second.getLeaseOwner(), 2, "real failure");
+        assertTrue(claimer.fail(second.getId(), "worker-B", second.getLeaseOwner(), 2, "real failure"));
         TaskExecution parked = taskExecutions.findById(second.getId()).orElseThrow();
         assertEquals(TaskStatus.RETRY_WAIT, parked.getStatus());
         assertTrue(parked.getError().contains("will retry"));
@@ -156,6 +158,35 @@ class EngineHardeningTest extends BaseIntegrationTest {
         scheduler.runPass();
         assertEquals(ExecutionStatus.COMPLETED,
                 workflowExecutions.findById(exec.getId()).orElseThrow().getStatus());
+    }
+
+    @Test
+    void failEndpoint_staleLeaseIs409() throws Exception {
+        Workflow wf = workflows.create(def(
+                "{\"name\":\"http-fail\",\"tasks\":[{\"id\":\"only\",\"type\":\"HTTP\"}]}"));
+        executions.start(wf.getId());
+        TaskExecution t = claimer.claim("worker-A").orElseThrow();
+
+        // Stale lease -> 409, task untouched.
+        mvc.perform(post("/workers/worker-A/tasks/" + t.getId() + "/fail")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"leaseOwner\":\"bogus\",\"attempt\":1,\"error\":\"x\"}"))
+                .andExpect(status().isConflict());
+        // Missing body degrades to a stale fail (409), never 400/500.
+        mvc.perform(post("/workers/worker-A/tasks/" + t.getId() + "/fail"))
+                .andExpect(status().isConflict());
+        assertEquals(TaskStatus.RUNNING,
+                taskExecutions.findById(t.getId()).orElseThrow().getStatus());
+
+        // Legitimate fail -> 200, parked for retry.
+        mvc.perform(post("/workers/worker-A/tasks/" + t.getId() + "/fail")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"leaseOwner\":\"" + t.getLeaseOwner()
+                                + "\",\"attempt\":1,\"error\":\"boom\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.recorded").value(true));
+        assertEquals(TaskStatus.RETRY_WAIT,
+                taskExecutions.findById(t.getId()).orElseThrow().getStatus());
     }
 
     @Test

@@ -81,7 +81,7 @@ onto `workflow_executions.definition_snapshot`, and every scheduling decision
 (promotion, retry limits) reads from that snapshot. Redeploys only affect
 executions started afterwards (`VersioningIT`). Concurrent creates for the same name race on the
 next version; the UNIQUE(name, version) loser recomputes and retries
-(`WorkflowService.create`, up to 3 attempts), so parallel deploys still
+(`WorkflowService.create`, up to 10 attempts), so parallel deploys still
 land distinct contiguous versions
 
 ## Retry engine (F5)
