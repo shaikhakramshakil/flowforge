@@ -1,0 +1,29 @@
+# Build output
+target/
+*.class
+*.jar
+*.war
+*.original
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local env / secrets — never commit credentials
+.env
+.env.*
+
+# Logs
+*.log
+nohup.out

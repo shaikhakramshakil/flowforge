@@ -1,0 +1,45 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: flowforge
+  datasource:
+    url: ${FF_DB_URL:jdbc:postgresql://localhost:5432/flowforge}
+    username: ${FF_DB_USER:flowforge}
+    password: ${FF_DB_PASSWORD:flowforge}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+flowforge:
+  scheduler:
+    # Kill-switch for the background sweep (tests / passive instances).
+    enabled: true
+    # Fixed delay for the @Scheduled sweep (plain millis).
+    scan-interval-ms: 1000
+    # Duration form, used for lease/unhealthy-cutoff math.
+    scan-interval: 1s
+    # Max tasks fetched per scan pass.
+    batch-size: 100
+    # Lease granted to a worker when it claims a task for execution.
+    lease-duration: 30s
+  worker:
+    # Set false for a pure server; true embeds one simulated worker in this
+    # process for demos and local testing without extra containers.
+    enabled: true
+    id: demo-worker
+    hostname: localhost
+    cpu-capacity: 4
+    memory-capacity-mb: 8192
+    heartbeat-interval: 2s
+    server-url: http://localhost:8080
+  retry:
+    # Initial backoff before retry 1 (base * factor^attempt).
+    initial-backoff: 2s
+    max-backoff: 60s
+    # Default max attempts when a workflow task omits `maxAttempts`.
+    default-max-attempts: 3
