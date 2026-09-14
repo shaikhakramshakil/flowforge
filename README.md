@@ -1,4 +1,5 @@
 # FlowForge
+**Live demo:** https://shaikhakramshakil-flowforge-demo.static.hf.space (scripted in-browser engine, no backend needed)
 
 [![Java 21](https://img.shields.io/badge/Java-21-blue)](https://aws.amazon.com/corretto/)
 [![Spring Boot 3.5](https://img.shields.io/badge/Spring_Boot-3.5-green)](https://spring.io/projects/spring-boot)
