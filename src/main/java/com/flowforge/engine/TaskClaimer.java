@@ -98,6 +98,12 @@ public class TaskClaimer {
         Optional<TaskExecution> maybe = taskExecutions.findById(taskId);
         if (maybe.isEmpty()) return false;
         TaskExecution t = maybe.get();
+        if (t.getStatus() == TaskStatus.SUCCESS) {
+            // Idempotent replay: the effect already completed and its output is
+            // durable. A retried ack (at-least-once delivery, worker crashed
+            // after acking) must report success, not failure.
+            return outputs.findOutput(t.getExecutionId(), t.getTaskId()).isPresent();
+        }
         if (t.getLeaseOwner() == null || !t.getLeaseOwner().equals(leaseOwner)) return false;
 
         if (outputs.findOutput(t.getExecutionId(), t.getTaskId()).isEmpty()) {

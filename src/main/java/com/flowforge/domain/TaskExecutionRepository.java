@@ -23,7 +23,7 @@ public interface TaskExecutionRepository extends JpaRepository<TaskExecution, Lo
                             where e.id = t.execution_id and e.status = 'RUNNING'
                               and e.cancel_requested = false)
              order by t.priority desc, t.id asc
-             limit :limit""", nativeQuery = true)
+             limit :limit for update skip locked""", nativeQuery = true)
     List<TaskExecution> findClaimable(@Param("limit") int limit);
 
     /** True when every task this task depends on is SUCCESS. */
@@ -115,6 +115,14 @@ public interface TaskExecutionRepository extends JpaRepository<TaskExecution, Lo
                   t.error = :detail, t.leaseOwner = null, t.leaseExpiresAt = null
             where t.id = :id and t.status in ('PENDING','READY','RETRY_WAIT')""")
     int cancelIdle(@Param("id") Long id, @Param("detail") String detail);
+    /** Bulk variant: cancel every idle task of an execution in one statement. */
+    @Modifying
+    @Query("""
+           update TaskExecution t
+              set t.status = 'CANCELLED', t.completedAt = CURRENT_TIMESTAMP,
+                  t.error = :detail, t.leaseOwner = null, t.leaseExpiresAt = null
+            where t.executionId = :executionId and t.status in ('PENDING','READY','RETRY_WAIT')""")
+    int cancelIdleByExecution(@Param("executionId") Long executionId, @Param("detail") String detail);
 
     // ---------- Lease expiry / recovery ----------
 

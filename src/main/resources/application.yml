@@ -15,6 +15,23 @@ spring:
   flyway:
     enabled: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: flowforge
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
 flowforge:
   scheduler:
     # Kill-switch for the background sweep (tests / passive instances).
@@ -25,6 +42,9 @@ flowforge:
     batch-size: 100
     # Lease granted to a worker when it claims a task for execution.
     lease-duration: 30s
+    # Silence threshold before a worker reads UNHEALTHY. Independent of the
+    # task lease: heartbeats and leases fail at different rates.
+    worker-timeout: 90s
   worker:
     # Set false for a pure server; true embeds one simulated worker in this
     # process for demos and local testing without extra containers.
@@ -41,3 +61,7 @@ flowforge:
     max-backoff: 60s
     # Default max attempts when a workflow task omits `maxAttempts`.
     default-max-attempts: 3
+
+logging:
+  pattern:
+    console: "%d{ISO8601} [%thread] %-5level [%X{requestId}] %logger{36} - %msg%n"

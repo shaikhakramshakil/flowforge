@@ -87,4 +87,22 @@ class DoubleExecutionPreventionTest extends BaseIntegrationTest {
         assertEquals(TaskStatus.RUNNING,
                 taskExecutions.findById(first.getId()).orElseThrow().getStatus());
     }
+    @Test
+    void retriedAckAfterSuccess_reportsSuccess() throws Exception {
+        WorkflowDefinition def = mapper.readValue(
+                "{\"name\":\"retry-ack\",\"tasks\":[{\"id\":\"only\",\"type\":\"HTTP\"}]}",
+                WorkflowDefinition.class);
+        Workflow wf = workflows.create(def);
+        executions.start(wf.getId());
+
+        TaskExecution claimed = claimer.claim("worker-A").orElseThrow();
+        var out = mapper.createObjectNode().put("ok", true);
+        assertTrue(claimer.acknowledge(claimed.getId(), "worker-A",
+                claimed.getLeaseOwner(), claimed.getAttempt(), out));
+        // At-least-once redelivery of the same ack must still report success.
+        assertTrue(claimer.acknowledge(claimed.getId(), "worker-A",
+                claimed.getLeaseOwner(), claimed.getAttempt(), out));
+        assertEquals(TaskStatus.SUCCESS,
+                taskExecutions.findById(claimed.getId()).orElseThrow().getStatus());
+    }
 }

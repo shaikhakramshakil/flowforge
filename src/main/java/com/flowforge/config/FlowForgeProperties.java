@@ -20,6 +20,10 @@ public class FlowForgeProperties {
         private boolean enabled = true;
         private int batchSize = 100;
         private Duration leaseDuration = Duration.ofSeconds(30);
+        /** Silence threshold before a worker reads UNHEALTHY. Decoupled from the
+         * task lease: heartbeats (seconds) and leases (tens of seconds) fail
+         * at different rates and must not share a knob. */
+        private Duration workerTimeout = Duration.ofSeconds(90);
 
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -28,6 +32,8 @@ public class FlowForgeProperties {
         public void setBatchSize(int batchSize) { this.batchSize = batchSize; }
         public Duration getLeaseDuration() { return leaseDuration; }
         public void setLeaseDuration(Duration leaseDuration) { this.leaseDuration = leaseDuration; }
+        public Duration getWorkerTimeout() { return workerTimeout; }
+        public void setWorkerTimeout(Duration workerTimeout) { this.workerTimeout = workerTimeout; }
     }
 
     public static class Worker {

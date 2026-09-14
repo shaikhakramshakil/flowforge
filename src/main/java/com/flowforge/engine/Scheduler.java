@@ -85,7 +85,7 @@ public class Scheduler {
     }
 
     private void markUnhealthyWorkers() {
-        Instant cutoff = Instant.now().minus(props.getScheduler().getLeaseDuration().multipliedBy(3));
+        Instant cutoff = Instant.now().minus(props.getScheduler().getWorkerTimeout());
         int n = workers.markUnhealthy(cutoff);
         if (n > 0) {
             log.info("marked {} worker(s) UNHEALTHY (no heartbeat since {})", n, cutoff);
@@ -134,12 +134,7 @@ public class Scheduler {
                 // Drain: anything that became READY after the request (e.g. a
                 // dependent promoted by a draining RUNNING task) is cancelled
                 // too; only in-flight RUNNING tasks may still ack.
-                for (TaskExecution t : taskExecutions.findByExecutionIdOrderByTaskId(e.getId())) {
-                    if (t.getStatus() == TaskStatus.PENDING || t.getStatus() == TaskStatus.READY
-                            || t.getStatus() == TaskStatus.RETRY_WAIT) {
-                        taskExecutions.cancelIdle(t.getId(), "execution cancelled");
-                    }
-                }
+                taskExecutions.cancelIdleByExecution(e.getId(), "execution cancelled");
                 long unfinished = taskExecutions
                         .countByExecutionIdAndStatusNotIn(e.getId(),
                                 List.of(TaskStatus.SUCCESS, TaskStatus.DEAD_LETTER, TaskStatus.CANCELLED));

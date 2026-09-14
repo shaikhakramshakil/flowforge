@@ -80,8 +80,9 @@ class CrashRecoveryTest extends BaseIntegrationTest {
         // Worker B's ack commits exactly once...
         assertTrue(claimer.acknowledge(reclaimed.getId(), "worker-B",
                 reclaimed.getLeaseOwner(), 2, out));
-        // ...and a duplicate ack of the same lease is a no-op (row left RUNNING).
-        assertFalse(claimer.acknowledge(reclaimed.getId(), "worker-B",
+        // ...and a duplicate ack is idempotent: the effect is already durable,
+        // so at-least-once redelivery reports success instead of a false failure.
+        assertTrue(claimer.acknowledge(reclaimed.getId(), "worker-B",
                 reclaimed.getLeaseOwner(), 2, out));
 
         // Side-effect output recorded exactly once.
