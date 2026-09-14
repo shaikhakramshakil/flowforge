@@ -1,5 +1,6 @@
 # FlowForge
 **Live demo:** https://shaikhakramshakil-flowforge-demo.static.hf.space (scripted in-browser engine, no backend needed)
+[![CI](https://github.com/shaikhakramshakil/flowforge/actions/workflows/ci.yml/badge.svg)](https://github.com/shaikhakramshakil/flowforge/actions)
 
 [![Java 21](https://img.shields.io/badge/Java-21-blue)](https://aws.amazon.com/corretto/)
 [![Spring Boot 3.5](https://img.shields.io/badge/Spring_Boot-3.5-green)](https://spring.io/projects/spring-boot)
