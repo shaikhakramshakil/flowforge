@@ -1,3 +1,5 @@
+import * as demo from './demo';
+
 const BASE: string = import.meta.env.VITE_API_BASE ?? '';
 
 export interface WorkerInfo {
@@ -69,7 +71,9 @@ async function json<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export const api = {
+export const DEMO_MODE: boolean = import.meta.env.VITE_DEMO === '1';
+
+const liveApi = {
   stats: () => fetch(`${BASE}/stats`).then(json<Stats>),
   workflows: () => fetch(`${BASE}/workflows`).then(json<WorkflowSnapshot[]>),
   execution: (id: number) => fetch(`${BASE}/executions/${id}`).then(json<ExecutionDetail>),
@@ -82,3 +86,30 @@ export const api = {
       json<unknown>,
     ),
 };
+const demoApi = {
+  stats: () => Promise.resolve(demo.getStats()),
+  workflows: () => Promise.resolve(demo.listWorkflows()),
+  execution: (id: number) => {
+    try {
+      return Promise.resolve(demo.getExecution(id));
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  },
+  execute: (workflowId: number) => {
+    try {
+      return Promise.resolve(demo.executeWorkflow(workflowId));
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  },
+  cancel: (executionId: number) => {
+    try {
+      return Promise.resolve(demo.cancelExecution(executionId));
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  },
+};
+
+export const api = DEMO_MODE ? demoApi : liveApi;

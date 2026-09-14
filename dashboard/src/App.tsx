@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api, type ExecutionDetail, type Stats, type WorkflowSnapshot } from './api';
+import { DEMO_MODE, api, type ExecutionDetail, type Stats, type WorkflowSnapshot } from './api';
 import './styles.css';
 
 function Badge({ value }: { value: string }) {
@@ -108,6 +108,7 @@ export default function App() {
       </header>
 
       <div className="status-row">
+        {DEMO_MODE && <span className="dim">Demo dataset — scripted engine, no backend connected.</span>}
         <span className={`live-badge ${live ? 'on' : 'off'}`}>
           <span className="dot" />
           {live ? 'ENGINE ONLINE' : 'DISCONNECTED'}
