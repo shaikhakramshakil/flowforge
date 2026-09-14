@@ -3,6 +3,10 @@
 # Used by the Hugging Face Space image (see /tmp/spaces/flowforge) and any
 # plain `docker run -p 7860:7860` host. Postgres data is ephemeral.
 set -e
+# Render injects $PORT; default keeps local/HF behavior on 7860.
+PORT="${PORT:-7860}"
+export SERVER_PORT="$PORT"
+export FLOWFORGE_WORKER_SERVERURL="http://localhost:$PORT"
 
 export PGDATA=/tmp/pgdata
 PGBIN=/usr/lib/postgresql/16/bin

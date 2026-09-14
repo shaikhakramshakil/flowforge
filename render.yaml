@@ -1,0 +1,10 @@
+# Render one-click blueprint. Free Docker web service; Postgres runs inside
+# the same container (see deploy/hf/start.sh), so no managed database to
+# expire. First visit after 15 min idle takes ~60s (cold start).
+services:
+  - type: web
+    name: flowforge
+    runtime: docker
+    dockerfilePath: ./deploy/render/Dockerfile
+    plan: free
+    healthCheckPath: /stats
