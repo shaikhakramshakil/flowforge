@@ -106,7 +106,21 @@ src/main/java/com/flowforge/
 └── worker/       # pull-based worker: claim loop, governor, HTTP client
 src/main/resources/db/migration/   # Flyway versioned schema
 scripts/demo.sh                    # crash-recovery demo: up | run | down
+dashboard/                         # React + TypeScript dashboard (same flat monochrome UI family as TaskMesh/RootScope)
 ```
+## Dashboard
+
+Read-only operations UI plus execute/cancel, in the same flat black-and-white
+language as the TaskMesh and RootScope frontends (Geist type, gray scale,
+hairline borders — no color, shadows, or gradients):
+
+```bash
+cd dashboard && npm install && npm run dev   # http://localhost:5174, proxies API to :8080
+```
+
+Shows engine tiles (`GET /stats`), workflow versions with one-click Execute
+(`POST /workflows/{id}/execute`), per-execution task tables with Cancel
+(`POST /executions/{id}/cancel`), worker heartbeats, and recent failures.
 
 ## Deployment
 
